@@ -164,7 +164,8 @@ def blender_session(action: str = "status", blend_file: Optional[str] = None) ->
             cmd.append(os.path.abspath(blend_file))
         cmd += ["--python", str(ADDON_DIR / "headless_runner.py"), "--", "--port", str(HEADLESS_PORT)]
         logf = open(os.path.join(os.getenv("TEMP", "/tmp"), "blendpro_headless.log"), "w")
-        _state["proc"] = subprocess.Popen(cmd, stdout=logf, stderr=subprocess.STDOUT,
+        # stdin must not be inherited: it is the MCP stdio pipe, and Blender holding it can stall the child
+        _state["proc"] = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=logf, stderr=subprocess.STDOUT,
                                           creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         _state["mode"] = "headless"
         _state["conns"].pop(HEADLESS_PORT, None)
