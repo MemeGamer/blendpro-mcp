@@ -6,6 +6,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Varun VP" }]
+
+[project.urls]
+Homepage = "https://github.com/MemeGamer/blendpro-mcp"
+Issues = "https://github.com/MemeGamer/blendpro-mcp/issues"
 keywords = ["blender", "mcp", "model-context-protocol", "claude", "bpy", "3d", "mediapipe", "xr"]
 classifiers = [
     "Programming Language :: Python :: 3",

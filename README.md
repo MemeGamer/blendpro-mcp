@@ -119,7 +119,7 @@ Limits:
 **You need:** Blender 4.2+ (developed and tested on **5.2.2 LTS**), Python 3.10+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-git clone https://github.com/GITHUB_USER/blendpro-mcp.git
+git clone https://github.com/MemeGamer/blendpro-mcp.git
 cd blendpro-mcp
 uv tool install -e .          # installs the `blendpro` command (MCP server + MediaPipe)
 blendpro install-addon        # copies the add-on into Blender's user add-ons and enables it
