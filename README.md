@@ -60,6 +60,55 @@ The figure draws the architecture as a bench machine:
   <br><sub>Built and rendered headless from <b>11 recipe calls</b>: terrain, procedural material, two procedural buildings, low-poly rock, Poisson scatter, catenary cable, physical sky and sun, camera framing, render preset, render. See <code>examples/showcase_scene.py</code>.</sub>
 </p>
 
+### Example: a textured prop, from empty scene to WebXR GLB
+
+<p align="center">
+  <img src="docs/images/chest_hero.jpg" alt="A stylised wooden treasure chest with black iron straps, rivets and hinges, its domed lid open on a pile of gold, coins scattered on a round stone pedestal" width="100%">
+</p>
+
+Claude Code built this treasure chest through BlendPro in a headless Blender, with no window open. ChatGPT image generation (Codex CLI) made the wood, iron and gold textures; the server derived roughness and tileable normal maps from them in Python. Every stage was rendered to a still for a progress video.
+
+<p align="center">
+  <img src="docs/images/chest_process.jpg" alt="Six stages: grey blockout, wireframe topology, UV checker, the generated texture maps, EEVEE materials and the final Cycles render" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/images/chest_turntable.gif" alt="The open treasure chest turning a full circle on its pedestal" width="70%">
+</p>
+
+| Stage | How it was done |
+|---|---|
+| Blockout | One `run_python` call: hollow body, hinged lid, straps, rim band, lock, handles, 16 rivets (linked duplicates), gold pile, 70 coins, pedestal, camera rig |
+| Cleanup and UVs | `mesh_analysis` reported 196 duplicate vertices, degenerate faces, n-gons and an unapplied scale as text. The `mesh_cleanup`, `fix_ngons`, `apply_transforms` and `smart_uv_unwrap` recipes fixed them, and a second `mesh_analysis` confirmed it |
+| Textures | 3 images from ChatGPT image generation; roughness and normal maps computed from them, then `pbr_material_from_textures` |
+| Look | `three_point_lighting`, `set_render_preset`, EEVEE for previews, Cycles on the GPU for the hero (about 9 s per frame) |
+| Review | A BVH interference check in `run_python` found coins and the gold pile passing through the lid, and the lid's bounding box showed its shell had been modelled upside down. Both were fixed from those numbers, not from screenshots |
+| Ship | `xr_budget_report` for Quest: 32,304 tris (4.3%), 102 draw calls (68%), 5.3 MB of textures, all within budget. Then `export_asset(preset="webxr_glb")`: an 8.4 MB Draco GLB |
+
+The GLB and the step log are in [`examples/treasure_chest/`](examples/treasure_chest).
+
+**What it cost.** These numbers come from the Claude Code session log, not an estimate. The build and one round of fixes took **83 model calls** on Claude Opus 5.5:
+- **57,800 output tokens**
+- **174,000 tokens written to the prompt cache**
+- **31.1 million tokens read back from the cache**
+
+At API list prices that is about **$8.80**. On a Claude subscription it counts against the plan instead. About $6.20 of it is cache reads, because this session already carried a long history from earlier work. A fresh session re-reads far less on each call, so the same job costs less. Other services: 3 ChatGPT images through an existing ChatGPT plan, and 0 Tripo credits.
+
+#### Why this uses fewer tokens than a basic Blender MCP
+
+A basic Blender MCP gives the model "run Python" and "take a screenshot". Each edit then becomes: guess an API, run it, screenshot to see what happened, read the image, repeat. Images are the most expensive thing a model reads, and a screenshot can't show topology, collisions or budgets anyway. BlendPro replaces most of those loops with text:
+
+| Basic MCP | BlendPro | In this build |
+|---|---|---|
+| Screenshot after each edit to see what changed | Every edit returns a **scene diff** as text | No viewport screenshots. Images were opened only to judge final renders |
+| Look at the mesh and hope | **`mesh_analysis`** lists duplicates, n-gons, flipped normals and UV problems with fix hints | Found 196 duplicate vertices that a render would never show |
+| Write cleanup and UV code from scratch, debug it | **100 tested recipes**, one call each | Cleanup, n-gon fixing, transforms, UVs, PBR materials, lights and the render preset came from recipes, with no debugging round-trips |
+| Re-send state with every script | **`persist`** keeps helpers and data between calls | The snapshot helper, recipe handle and object lists were written once and reused across calls |
+| Find export settings by trial | **`export_asset` presets** with a pre-export budget check | One call for a Draco GLB and the Quest budget |
+| Read a traceback, guess, re-run | `run_python` returns the **failing line and a did-you-mean hint** | Each error in the session was fixed on the next call |
+
+We haven't benchmarked a basic MCP on the same chest side by side, so this table shows where the savings come from rather than a measured ratio.
+
 ### Tools (22)
 
 | Group | Tools | What makes them cheap |

@@ -1,0 +1,219 @@
+{
+  "steps": [
+    {
+      "step": "01_blockout_clay",
+      "what": "Blockout: hollow chest body, hinged half-cylinder lid, iron straps, rim band, lock, handles, rivets, gold mound, 70 coins, stone pedestal (one run_python call)"
+    },
+    {
+      "step": "02_topology_wire",
+      "what": "Topology pass: wireframe overlay of every part; caps flat-shaded, curved surfaces smooth"
+    },
+    {
+      "step": "03_cleanup_uv",
+      "what": "mesh_analysis found 196 duplicate verts + degenerate faces on the lid and n-gons; fixed with mesh_cleanup / fix_ngons / apply_transforms recipes, then smart UV unwrap of every unique mesh"
+    },
+    {
+      "step": "03_uv_checker",
+      "what": "UV check: generated colour-grid checker on every unwrapped mesh"
+    },
+    {
+      "step": "04_textures_pbr",
+      "what": "Textures generated with ChatGPT image gen (wood, iron, gold), then roughness + tileable normal maps derived in Python"
+    },
+    {
+      "step": "05_textured_eevee",
+      "what": "PBR materials from the generated textures, three-point lighting recipe, EEVEE render with raytracing"
+    },
+    {
+      "step": "lid_fix",
+      "what": "Review pass: the lid shell had been built upside down and the body straps looped across the opening. Mirrored the lid in hinge space, fixed its UVs, opened it to 105 degrees on two new iron hinge barrels, cut the strap tops, then cleared every lid part of collisions"
+    },
+    {
+      "step": "06_final_cycles",
+      "what": "Final beauty render: Cycles on the GPU, 96 samples + denoise, AgX Punchy; 8.6 s"
+    },
+    {
+      "step": "07_closeup_cycles",
+      "what": "Close-up at 60 mm: lock plate, smooth-shaded rivets, scattered coins"
+    },
+    {
+      "step": "turntable",
+      "what": "Turntable: 60 EEVEE frames (1280x720), camera orbit; an interference check found and fixed coins and the gold mound clipping the lid"
+    },
+    {
+      "step": "xr_budget",
+      "what": "Quest XR budget: 32,304 tris (4.3%), 102 draw calls (68%), 5.3 MB textures. All within budget"
+    },
+    {
+      "step": "export",
+      "what": "Export: Draco-compressed GLB for WebXR (8.4 MB) + treasure_chest.blend"
+    }
+  ],
+  "budget": {
+    "platform": "quest",
+    "totals": {
+      "tris": 32304,
+      "draw_calls": 102,
+      "texture_mb": 5.3
+    },
+    "texture_rgba8_mb": 48,
+    "status": {
+      "tris": {
+        "value": 32304,
+        "budget": 750000,
+        "pct": 4.3,
+        "ok": true
+      },
+      "draw_calls": {
+        "value": 102,
+        "budget": 150,
+        "pct": 68,
+        "ok": true
+      },
+      "texture_mb": {
+        "value": 5.3,
+        "budget": 512,
+        "pct": 1,
+        "ok": true
+      }
+    },
+    "over_budget": [],
+    "top_objects": [
+      {
+        "name": "Pedestal",
+        "tris": 1148,
+        "draw_calls": 1,
+        "instances": 1
+      },
+      {
+        "name": "Lid_Hinge",
+        "tris": 992,
+        "draw_calls": 4,
+        "instances": 4
+      },
+      {
+        "name": "Handle_0",
+        "tris": 960,
+        "draw_calls": 1,
+        "instances": 1
+      },
+      {
+        "name": "Handle_1",
+        "tris": 960,
+        "draw_calls": 1,
+        "instances": 1
+      },
+      {
+        "name": "Gold_Mound",
+        "tris": 960,
+        "draw_calls": 1,
+        "instances": 1
+      },
+      {
+        "name": "Chest_Body",
+        "tris": 380,
+        "draw_calls": 1,
+        "instances": 1
+      },
+      {
+        "name": "Coin.001",
+        "tris": 332,
+        "draw_calls": 1,
+        "instances": 1
+      },
+      {
+        "name": "Coin.002",
+        "tris": 332,
+        "draw_calls": 1,
+        "instances": 1
+      },
+      {
+        "name": "Coin.003",
+        "tris": 332,
+        "draw_calls": 1,
+        "instances": 1
+      },
+      {
+        "name": "Coin.004",
+        "tris": 332,
+        "draw_calls": 1,
+        "instances": 1
+      }
+    ],
+    "textures": [
+      {
+        "name": "wood_normal.png",
+        "size": [
+          1024,
+          1024
+        ],
+        "rgba8_mb": 5.33
+      },
+      {
+        "name": "wood_roughness.png",
+        "size": [
+          1024,
+          1024
+        ],
+        "rgba8_mb": 5.33
+      },
+      {
+        "name": "iron_basecolor.png",
+        "size": [
+          1024,
+          1024
+        ],
+        "rgba8_mb": 5.33
+      },
+      {
+        "name": "iron_normal.png",
+        "size": [
+          1024,
+          1024
+        ],
+        "rgba8_mb": 5.33
+      },
+      {
+        "name": "gold_basecolor.png",
+        "size": [
+          1024,
+          1024
+        ],
+        "rgba8_mb": 5.33
+      },
+      {
+        "name": "gold_roughness.png",
+        "size": [
+          1024,
+          1024
+        ],
+        "rgba8_mb": 5.33
+      },
+      {
+        "name": "wood_basecolor.png",
+        "size": [
+          1024,
+          1024
+        ],
+        "rgba8_mb": 5.33
+      },
+      {
+        "name": "iron_roughness.png",
+        "size": [
+          1024,
+          1024
+        ],
+        "rgba8_mb": 5.33
+      },
+      {
+        "name": "gold_normal.png",
+        "size": [
+          1024,
+          1024
+        ],
+        "rgba8_mb": 5.33
+      }
+    ],
+    "tips": []
+  }
+}
