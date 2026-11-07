@@ -1,0 +1,25 @@
+[project]
+name = "blendpro"
+version = "0.1.0"
+description = "Token-efficient Blender MCP server: scene diffs, node-tree JSON, mesh/spatial analysis, 100 tested recipes, MediaPipe pose understanding, headless mode"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Varun VP" }]
+keywords = ["blender", "mcp", "model-context-protocol", "claude", "bpy", "3d", "mediapipe", "xr"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+]
+dependencies = ["mcp[cli]>=1.3.0,<2", "httpx>=0.27", "mediapipe>=0.10.14"]
+
+[project.scripts]
+blendpro = "blendpro.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/blendpro"]

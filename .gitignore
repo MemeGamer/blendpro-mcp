@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+uv.lock
+
+# Blender
+*.blend1
+*.blend@
+
+# Local secrets / caches (BlendPro reads keys from ~/.blendpro, never from the repo)
+.env
+*.key
+tripo_api_key.txt
+openai_api_key.txt
+models/*.task
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# figure build previews
+docs/figure/*.png
+docs/figure/preview-*.html
