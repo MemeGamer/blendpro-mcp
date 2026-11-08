@@ -18,10 +18,11 @@ Curated, workflow-level Blender knowledge. Read only the reference file(s) that 
 | Thin Wall transparency | `references/materials/thin-wall-transparency.md` | Principled BSDF Thin Wall for windows, leaves, bubbles, paper; replaces Solidify hacks |
 | Stylized fur & feathers (Geo Nodes) | `references/geometry-nodes/stylized-fur-feathers.md` | Scatter/instance on surface, borrowing a sphere's normals via Sample Nearest Surface + Set Mesh Normal, Scene Time noise wind animation, per-instance random color attribute |
 | Stylized Eevee rendering | `references/rendering/stylized-eevee.md` | Ray tracing off for toon looks, soft "fast GI" values, Fresnel/Layer Weight rim light in the shader |
+| Reference-image pipeline | `references/modeling/reference-pipeline.md` | GPT-image orthographic view prompts (front/left/top, +right/back/bottom for complex objects), measure silhouette/profile/palette as text, real-size Image empties, drips/coatings/sprinkle variants with real tools, IoU scoring per view |
 | Essential modeling add-ons | `references/addons/essential-modeling-addons.md` | Edge Flow, Mesh Align Plus, Tissue, LoopTools, Quick Snap, Re-Primitive — with exact hotkeys/menus |
 | Free add-ons mega list | `references/addons/free-addons-mega-list.md` | ~25 free add-ons grouped by CAD, procedural, assets, cables/cloth, retopo, export/utility |
 
-When a request spans topics, combine them, e.g. stylized bird character: modeling → fur/feathers → texture painting → stylized Eevee; sculpted character: sculpting → (retopo) → texture painting or sculpt vertex paint → stylized Eevee; hard-surface part: boolean cleanup → bevel/SubD → materials.
+When a request spans topics, combine them, e.g. real-world prop or food: reference pipeline → modeling → materials from the measured palette → render; stylized bird character: modeling → fur/feathers → texture painting → stylized Eevee; sculpted character: sculpting → (retopo) → texture painting or sculpt vertex paint → stylized Eevee; hard-surface part: boolean cleanup → bevel/SubD → materials.
 
 ## How to answer
 
@@ -59,7 +60,7 @@ Token-cheap loop, with images last:
   - Use `tripo_task("balance")` before batch jobs.
   - If the user generates in Tripo Studio instead, the Tripo Bridge add-on pushes models into Blender (`tripo_task("bridge")` shows its state). Find them with `scene_overview`.
 
-### Recipes: 100 tested one-call tasks
+### Recipes: 104 tested one-call tasks
 
 Prefer `recipes` over hand-written bpy when one fits. Each recipe is a parameterized function that was tested headless on Blender 5.2.
 - Discover: `recipes(action="list", category=..., query=...)`.
@@ -70,6 +71,7 @@ Categories:
 - **modeling**: rounded_box, boolean_cut, pipes, arrays, lathe, text, rocks, stairs, mesh_cleanup, fix_ngons, apply_transforms, set_origin, decimate_to_tris, remesh, smooth_by_angle, UV unwrap/lightmap_uv2/checker/texel_density
 - **shading**: PBR from texture folders, procedural materials, lighting rigs, HDRI/sky, camera framing/turntable, render presets, baking (AO, normal, diffuse, atlas), compositor
 - **rigging**: biped and joint-position armatures, auto weights, ≤4-influence limits, IK, bone renaming for Mixamo/Unity, keyframing, procedural walk/idle, bake action, NLA, shape keys, drivers, retarget
+- **reference**: reference_measure, reference_image_setup, reference_compare (silhouette IoU per view), reference_details (sprinkle/seed size + colour stats) — see `references/modeling/reference-pipeline.md`
 - **geonodes / pipeline**: scatter, curve instancing, procedural buildings and fences, cables, stylized fur, terrain; LODs, UCX collision, batch export, naming, purge, XR budget report, texture resize, draw-call merge
 
 Source: `blendpro-mcp/src/blendpro/addon/recipes/*.py`. Tests: `tests/test_*.py`, run with `blender --background --factory-startup --python tests/run_recipe_tests.py -- <module>`.

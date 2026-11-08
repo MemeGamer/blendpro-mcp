@@ -1,3 +1,14 @@
+<details><summary><b>Reference images</b> (4)</summary>
+
+| Recipe | What it does |
+|---|---|
+| `reference_details` | Small surface details in a reference (sprinkles, seeds, rivets): count, density, length/width spread, orientation spread, colour palette. |
+| `reference_compare` | Render the model's silhouette from the reference view and score it: IoU, area ratio, centroid offset, per-row width error. |
+| `reference_image_setup` | Put a reference image in the scene as an Image empty, aligned to front/left/top/... and scaled so the silhouette is real size. |
+| `reference_measure` | Measure a reference view as text: silhouette size, row-by-row width profile, holes, k-means palette, top/middle/bottom colour bands. |
+
+</details>
+
 <details><summary><b>Modeling and UV</b> (25)</summary>
 
 | Recipe | What it does |

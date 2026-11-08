@@ -2,7 +2,7 @@
 
     blender --background --factory-startup --python tests/run_recipe_tests.py -- [module ...]
 
-Each tests/test_<module>.py defines CASES = [(recipe_name, params, check_fn_or_None), ...].
+Each tests/test_<module>.py defines CASES = [(recipe_name, params, check_fn_or_None[, setup_fn]), ...].
 Every case runs on a fresh empty scene. check_fn(result_dict) must return True (or raise)."""
 import importlib.util
 import json
@@ -32,9 +32,11 @@ for f in files:
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     for case in mod.CASES:
-        name, params, check = (list(case) + [None])[:3]
+        name, params, check, setup = (list(case) + [None, None])[:4]
         bpy.ops.wm.read_factory_settings(use_empty=True)
         try:
+            if setup is not None:  # optional scene preparation before the recipe runs
+                setup()
             res = R.recipes("run", name=name, params=params)
             json.dumps(res, default=str)  # must be serialisable
             if check is not None and not check(res["result"]):
