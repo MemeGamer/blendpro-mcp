@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Text-first Blender control for AI agents.</b><br>
-  Scene diffs instead of screenshots, whole node trees in one call, 104 tested recipes, and MediaPipe pose understanding for characters.
+  Scene diffs instead of screenshots, whole node trees in one call, 110 tested recipes, and MediaPipe pose understanding for characters.
 </p>
 
 <p align="center">
@@ -14,7 +14,7 @@
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-3776ab">
   <img alt="Blender 5.2 tested" src="https://img.shields.io/badge/Blender-4.2%2B%20%7C%205.2%20tested-e87d0d">
   <img alt="MCP" src="https://img.shields.io/badge/MCP-server-6f42c1">
-  <img alt="Recipe tests" src="https://img.shields.io/badge/recipe%20tests-108%20passing-2ea44f">
+  <img alt="Recipe tests" src="https://img.shields.io/badge/recipe%20tests-115%20passing-2ea44f">
 </p>
 
 ---
@@ -24,7 +24,7 @@ Most Blender MCP servers give the model two things: "run this Python" and "take 
 BlendPro is built around a different loop:
 
 1. **Read the scene as text.** You get one compact line per object: transforms, after-modifier counts, modifiers with their key settings, materials and flags.
-2. **Edit in one call.** Use batched edits, a whole material or Geometry Nodes tree as JSON, operators with their context handled, or one of 104 tested recipes.
+2. **Edit in one call.** Use batched edits, a whole material or Geometry Nodes tree as JSON, operators with their context handled, or one of 110 tested recipes.
 3. **Read the diff.** Every edit returns what changed (added, removed and changed objects, datablock counts, mode), so there's no re-query.
 4. **Verify with text.** Mesh topology reports, spatial relationships (what rests on what, real intersections, camera framing, ASCII maps) and API lookups against *your* Blender version.
 5. **Look once.** At the end, a single small contact sheet of several auto-framed views. It also works headless.
@@ -90,10 +90,27 @@ The `.blend` file, the reference images and a 22 s vertical reel are in [`exampl
 
 ### More examples
 
+### A furry squash-and-stretch character with cute expressions
+
 <p align="center">
-  <img src="docs/images/showcase.jpg" alt="Two procedural office towers with window grids on a noise terrain scattered with low-poly rocks, a cable strung between the towers, under a physical sky" width="85%">
-  <br><sub>Built and rendered headless from <b>11 recipe calls</b>: terrain, procedural material, two procedural buildings, low-poly rock, Poisson scatter, catenary cable, physical sky and sun, camera framing, render preset, render. See <code>examples/showcase_scene.py</code>.</sub>
+  <img src="docs/images/fluffball.gif" alt="A coral fluffy ball with a cute face hopping across a pale stage three times, squashing on landing, stretching on take-off and twirling once, its expression changing every beat" width="85%">
 </p>
+
+The fluffball combines three of BlendPro's rig and face recipes with particle-hair dynamics:
+
+<p align="center">
+  <img src="docs/images/fluffball_sheet.jpg" alt="Eighteen frames of the hop cycle: anticipation squash, launch stretch, star eyes at the apex, landing squash, a full twirl and a wink at the end" width="100%">
+</p>
+
+| Stage | How it was done |
+|---|---|
+| Rig | `squash_stretch_rig`: root / bottom / B-Bone body / top controls. Stretch To keeps the volume, and the bottom control keeps the base planted |
+| Face | `face_expression_setup`: the face rides the rig (weights copied from the body, snapped to its surface), and `face_expression_animate` keys a new expression every beat: happy → squee → joy → star_eyes → surprised → laughing, then hyped, sparkle_joy, in_love and a wink |
+| Fur | About 200k particle-hair strands with hair dynamics: low gravity and high pin stiffness so they jiggle without sinking into the body. A length map keeps the fur short under the face. Baked to disk before rendering |
+| Readability | The face is rendered on its own view layer, with a fur-less copy of the body as a holdout, and alpha-composited over the furry render, so fur never hides it but it still turns away correctly during the twirl |
+| Motion | Three hops at 30 fps: anticipation squash, launch stretch, eased apex, fall stretch, contact squash and overshoot. The second hop is a 360° twirl. No motion blur, so the face lines stay crisp |
+
+The `.blend` file and a 4 s MP4 are in [`examples/fluffball/`](examples/fluffball). Every lesson from this build, including what went wrong first, is written up in [`skill/blender/references/rigging/squash-and-stretch.md`](skill/blender/references/rigging/squash-and-stretch.md).
 
 ### A textured prop, from empty scene to WebXR GLB
 
@@ -137,7 +154,7 @@ A basic Blender MCP gives the model "run Python" and "take a screenshot". Each e
 |---|---|---|
 | Screenshot after each edit to see what changed | Every edit returns a **scene diff** as text | No viewport screenshots. Images were opened only to judge final renders |
 | Look at the mesh and hope | **`mesh_analysis`** lists duplicates, n-gons, flipped normals and UV problems with fix hints | Found 196 duplicate vertices that a render would never show |
-| Write cleanup and UV code from scratch, debug it | **104 tested recipes**, one call each | Cleanup, n-gon fixing, transforms, UVs, PBR materials, lights and the render preset came from recipes, with no debugging round-trips |
+| Write cleanup and UV code from scratch, debug it | **110 tested recipes**, one call each | Cleanup, n-gon fixing, transforms, UVs, PBR materials, lights and the render preset came from recipes, with no debugging round-trips |
 | Re-send state with every script | **`persist`** keeps helpers and data between calls | The snapshot helper, recipe handle and object lists were written once and reused across calls |
 | Find export settings by trial | **`export_asset` presets** with a pre-export budget check | One call for a Draco GLB and the Quest budget |
 | Read a traceback, guess, re-run | `run_python` returns the **failing line and a did-you-mean hint** | Each error in the session was fixed on the next call |
@@ -158,16 +175,17 @@ We haven't benchmarked a basic MCP on the same chest side by side, so this table
 
 The asset tools inherited from blendmcp (Poly Haven, Sketchfab, Hyper3D Rodin, Hunyuan3D) add 13 more tool schemas, so they load only with `BLENDPRO_ASSET_TOOLS=1` and don't cost context otherwise.
 
-### 104 tested recipes
+### 110 tested recipes
 
-`recipes(action="list" | "doc" | "run")` exposes parameterized one-call tasks. Every recipe has a headless test that runs on a fresh scene and checks a real outcome: counts, dimensions, files written, evaluated instances. **108 test cases pass on Blender 5.2.2.**
+`recipes(action="list" | "doc" | "run")` exposes parameterized one-call tasks. Every recipe has a headless test that runs on a fresh scene and checks a real outcome: counts, dimensions, files written, evaluated instances. **115 test cases pass on Blender 5.2.2.**
 
 | Category | Count | Examples |
 |---|---|---|
 | Modeling & UV | 25 | `rounded_box`, `boolean_cut`, `lathe_profile`, `mesh_cleanup`, `apply_transforms`, `decimate_to_tris`, `smooth_by_angle`, `smart_uv_unwrap`, `texel_density`, `symmetrize` |
 | Materials, lighting, render, bake | 25 | `pbr_material_from_textures` (sets colour spaces correctly), `procedural_material`, `toon_shader_material`, `three_point_lighting`, `sky_world`, `sun_time_of_day`, `frame_objects_camera`, `turntable_setup`, `bake_maps`, `bake_normal_high_to_low` |
-| Rigging & animation | 25 | `biped_armature` (Blender/Mixamo/Unity names), `armature_from_joint_positions`, `auto_weight_parent`, `limit_weights_and_normalize`, `ik_chain`, `procedural_walk_cycle`, `bake_action`, `retarget_simple`, `root_motion_extract` |
+| Rigging & animation | 26 | `squash_stretch_rig`, `biped_armature` (Blender/Mixamo/Unity names), `armature_from_joint_positions`, `auto_weight_parent`, `limit_weights_and_normalize`, `ik_chain`, `procedural_walk_cycle`, `bake_action`, `retarget_simple`, `root_motion_extract` |
 | Geometry Nodes | 11 | `scatter_on_surface`, `scatter_with_min_distance`, `procedural_building`, `procedural_fence`, `cable_between_points`, `stylized_fur_cards`, `terrain_from_noise`, `realize_and_apply_gn` |
+| Face expressions | 5 | `face_expression_setup` (atlas face decal on a head, driven by one `expression` property), `face_expression_set` (by name: happy, angry, uwu...), `face_expression_animate` (constant keys + auto-blink), `face_atlas_build`, `face_sheet_import` (GPT image grid → faces in the shared layout). 50 faces bundled |
 | Reference images | 4 | `reference_measure`, `reference_image_setup`, `reference_compare` (silhouette IoU per view), `reference_details` (sprinkle/seed stats) |
 | XR / engine pipeline | 14 | `generate_lods`, `unity_collision_mesh`, `lightmap_uv2`, `batch_export`, `naming_convention_fix`, `xr_budget_report`, `texture_resize`, `merge_by_material`, `gltf_optimize_export` |
 
@@ -272,12 +290,13 @@ src/blendpro/
     ops.py             python, operators, batched edits, checkpoints, API lookup, add-ons, export
     pose.py            pose render + 3D joint lift + metrics
     imports.py         normalized model import, Tripo Bridge status
-    recipes/           104 recipes (modeling, shading, rigging, pipeline, reference)
+    recipes/           110 recipes (modeling, shading, rigging, pipeline, reference, faces)
+    assets/faces/      50 face expressions (Face_N.png) + faces.json names/blink partners
     legacy_blendmcp.py blendmcp handlers for the asset integrations
     headless_runner.py background-mode server
 tests/                 recipe tests + runner
 skill/blender/         Claude Code skill + references
-examples/              showcase_scene.py
+examples/              donut/, fluffball/, treasure_chest/, showcase_scene.py
 docs/                  RECIPES.md, images, figure source
 ```
 
