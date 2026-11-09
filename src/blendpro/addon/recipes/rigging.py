@@ -1751,3 +1751,130 @@ def set_fps_and_range(fps=30, frame_start=1, frame_end=None, fit_to=None, fps_ba
     return {"fps": sc.render.fps, "fps_effective": r(sc.render.fps / sc.render.fps_base, 3),
             "frame_start": sc.frame_start, "frame_end": sc.frame_end,
             "duration_s": r((sc.frame_end - sc.frame_start + 1) / (sc.render.fps / sc.render.fps_base), 3)}
+
+
+# --------------------------------------------------------------------------------------------- squash & stretch
+def _widget_circle(name, radius, plane="XZ", coll=None):
+    """Circle mesh for a custom bone shape. plane XZ = around a bone (perpendicular to its Y axis)."""
+    import bmesh
+    me = bpy.data.meshes.get(name) or bpy.data.meshes.new(name)
+    bm = bmesh.new()
+    rot = Matrix.Rotation(math.radians(90), 4, "X") if plane == "XZ" else Matrix.Identity(4)
+    bmesh.ops.create_circle(bm, cap_ends=False, segments=32, radius=radius, matrix=rot)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.get(name) or bpy.data.objects.new(name, me)
+    if coll is not None and ob.name not in coll.objects:
+        coll.objects.link(ob)
+    return ob
+
+
+@recipe("rigging", tags=("squash and stretch", "stretch to", "bendy bones", "bbone", "cartoon", "bounce", "rig"))
+def squash_stretch_rig(target=None, name="SquashRig", segments=6, volume="VOLUME_XZX", bulge=1.0, base=0.12,
+                       bind=True, widgets=True) -> dict:
+    '''Animator-friendly squash & stretch rig for a cartoon object or character (ball, blob, mascot, prop):
+    root (moves everything) -> bottom control (deforming, keeps the base planted) -> body B-Bone (`segments`
+    segments, Stretch To the top control, volume preserved: volume=VOLUME_XZX|VOLUME_X|VOLUME_Z|NO_VOLUME,
+    bulge = Volume Variation) and a free top control whose position stretches/squashes the body and whose
+    rotation bends it (the body's B-Bone handles are the bottom and top controls -> smooth C-curves).
+    Circle custom shapes in a hidden WGT collection, bone collections CONTROLS / DEFORM (DEFORM hidden),
+    scale locked on controls, gimbal-safe Euler order ZYX on controls (local Y twist in the middle).
+    bind=True parents the mesh with automatic weights, then pins the bottom `base` fraction of its height to
+    the bottom control (weight 1.0) so it stays on the floor. target=None builds a demo ball.'''
+    if target is None:
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=0.5, location=(0, 0, 0.5))
+        tgt = bpy.context.active_object
+        tgt.name = "Ball"
+        for p in tgt.data.polygons:
+            p.use_smooth = True
+    else:
+        tgt = _mesh(target)
+    _ensure_object_mode()
+    bpy.context.view_layer.update()
+    pts = [tgt.matrix_world @ Vector(c) for c in tgt.bound_box]
+    mn = Vector([min(p[i] for p in pts) for i in range(3)])
+    mx = Vector([max(p[i] for p in pts) for i in range(3)])
+    cx, cy = (mn.x + mx.x) / 2, (mn.y + mx.y) / 2
+    H = mx.z - mn.z
+    W = max(mx.x - mn.x, mx.y - mn.y)
+    old = bpy.data.objects.get(name)
+    if old:
+        bpy.data.objects.remove(old, do_unlink=True)
+    arm = bpy.data.armatures.new(name)
+    arm_obj = bpy.data.objects.new(name, arm)
+    for c in tgt.users_collection:
+        c.objects.link(arm_obj)
+    arm.display_type = "BBONE"
+    arm_obj.show_in_front = True
+    zb = mn.z + base * H
+    with _mode(arm_obj, "EDIT") as a:
+        root = a.edit_bones.new("root")
+        root.head, root.tail = (cx, cy, mn.z), (cx, cy + 0.6 * W, mn.z)
+        root.use_deform = False
+        bottom = a.edit_bones.new("bottom")
+        bottom.head, bottom.tail = (cx, cy, mn.z), (cx, cy, zb)
+        bottom.parent = root
+        bottom.use_deform = True
+        body = a.edit_bones.new("body")
+        body.head, body.tail = (cx, cy, zb), (cx, cy, mx.z)
+        body.parent = bottom
+        body.use_connect = True
+        body.use_deform = True
+        body.bbone_segments = int(segments)
+        top = a.edit_bones.new("top")
+        top.head, top.tail = (cx, cy, mx.z), (cx, cy, mx.z + 0.25 * H)
+        top.parent = root
+        top.use_deform = False
+        body.bbone_handle_type_start = "ABSOLUTE"
+        body.bbone_custom_handle_start = bottom
+        body.bbone_handle_type_end = "ABSOLUTE"
+        body.bbone_custom_handle_end = top
+    pb = arm_obj.pose.bones
+    con = pb["body"].constraints.new("STRETCH_TO")
+    con.target = arm_obj
+    con.subtarget = "top"
+    con.volume = volume
+    con.bulge = float(bulge)
+    con.rest_length = H - base * H
+    for n in ("root", "bottom", "top"):
+        p = pb[n]
+        p.rotation_mode = "ZYX"
+        p.lock_scale = (True, True, True)
+    # bone collections + colours
+    for bc in list(arm.collections_all):
+        arm.collections.remove(bc)
+    ctrl, deform = arm.collections.new("CONTROLS"), arm.collections.new("DEFORM")
+    for n, pal in (("root", "THEME09"), ("bottom", "THEME03"), ("top", "THEME01")):
+        ctrl.assign(arm.bones[n])
+        arm.bones[n].color.palette = pal
+    deform.assign(arm.bones["body"])
+    deform.is_visible = False
+    wgt_names = []
+    if widgets:
+        wc = bpy.data.collections.get(f"WGT_{name}") or bpy.data.collections.new(f"WGT_{name}")
+        if wc.name not in bpy.context.scene.collection.children:
+            bpy.context.scene.collection.children.link(wc)
+        for n, rad, plane in (("root", 0.75 * W, "XY"), ("bottom", 0.6 * W, "XZ"), ("top", 0.35 * W, "XZ")):
+            w = _widget_circle(f"WGT_{name}_{n}", rad, plane, wc)
+            p = pb[n]
+            p.custom_shape = w
+            p.use_custom_shape_bone_size = False
+            wgt_names.append(w.name)
+        lc = bpy.context.view_layer.layer_collection.children.get(wc.name)
+        if lc:
+            lc.exclude = True
+    out = {"armature": arm_obj.name, "bones": ["root", "bottom", "body", "top"], "segments": int(segments),
+           "volume": volume, "bulge": float(bulge), "widgets": wgt_names, "target": tgt.name}
+    if bind:
+        res = auto_weight_parent(mesh=tgt.name, armature=arm_obj.name)
+        vgb = tgt.vertex_groups.get("bottom") or tgt.vertex_groups.new(name="bottom")
+        vgd = tgt.vertex_groups.get("body") or tgt.vertex_groups.new(name="body")
+        mw = tgt.matrix_world
+        pinned = 0
+        for v in tgt.data.vertices:
+            if (mw @ v.co).z <= zb + 1e-6:
+                vgb.add([v.index], 1.0, "REPLACE")
+                vgd.remove([v.index])
+                pinned += 1
+        out.update(bind=res["method"], pinned_base_vertices=pinned)
+    return out

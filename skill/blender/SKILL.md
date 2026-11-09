@@ -1,11 +1,27 @@
 ---
 name: blender
-description: Practical Blender know-how — modeling (character blockouts, SubD, shrinkwrap, eye/beak tricks), boolean cleanup and quad retopology of boolean seams, sculpting (voxel remesh, brushes, masking, face sets, sculpt vertex paint), materials and texture painting, Thin Wall transparency, Geometry Nodes (stylized fur/feathers, custom normals, instance animation), stylized Eevee rendering, free add-on recommendations, and running Blender headlessly with Python (bpy). Use whenever the user asks how to do something in Blender, wants a Blender workflow, node setup, modifier stack, render settings, or add-on suggestion, or wants a bpy script written or run — even if they only mention a .blend file, Eevee, Cycles, Geometry Nodes, or "3D model" without naming Blender.
+description: Practical Blender know-how — modeling (character blockouts, SubD, shrinkwrap, eye/beak tricks), boolean cleanup and quad retopology of boolean seams, sculpting (voxel remesh, brushes, masking, face sets, sculpt vertex paint), materials and texture painting, Thin Wall transparency, modeling from reference images (measure, overlay, silhouette scoring), cute 2D face expressions with blinks, squash & stretch rigs (Stretch To, Bendy Bones), step-by-step project walkthroughs (car from blueprints, jet with guide-mesh panels, realistic donut, procedural sushi, cloth sofa, plus quick props: flower, flower pot, fur/hair, gift box, puffy chair, roof tiles, vase, tennis ball), Geometry Nodes (stylized fur/feathers, custom normals, instance animation), stylized Eevee rendering, free add-on recommendations, and running Blender headlessly with Python (bpy). Use whenever the user asks how to do something in Blender, wants a Blender workflow, node setup, modifier stack, render settings, or add-on suggestion, or wants a bpy script written or run — even if they only mention a .blend file, Eevee, Cycles, Geometry Nodes, or "3D model" without naming Blender.
 ---
 
 # Blender
 
 Curated, workflow-level Blender knowledge. Read only the reference file(s) that match the question — each is short and self-contained.
+
+## Rule: always model from reference
+
+Before modeling **any** object (prop, food, vehicle, character, furniture), generate separate orthographic reference images:
+- **Always:** front, left, right, top and bottom.
+- **Add back** when the front and back differ (cars, characters, chairs).
+
+Generate one image per view, never a combined sheet. Use GPT image generation through Codex CLI, piping the prompt on stdin. Pass the first finished view with `-i` so every view shows the same object. If image generation isn't available, give the user the prompts to paste into ChatGPT.
+
+Then follow `references/modeling/reference-pipeline.md`:
+1. `reference_measure` each view at real size. If the generated proportions are off, correct each axis to known real dimensions.
+2. `reference_image_setup` each view as an overlay.
+3. Model from the measured numbers.
+4. Score every view with `reference_compare`.
+
+Never block out from imagination alone.
 
 ## Reference index
 
@@ -19,10 +35,18 @@ Curated, workflow-level Blender knowledge. Read only the reference file(s) that 
 | Stylized fur & feathers (Geo Nodes) | `references/geometry-nodes/stylized-fur-feathers.md` | Scatter/instance on surface, borrowing a sphere's normals via Sample Nearest Surface + Set Mesh Normal, Scene Time noise wind animation, per-instance random color attribute |
 | Stylized Eevee rendering | `references/rendering/stylized-eevee.md` | Ray tracing off for toon looks, soft "fast GI" values, Fresnel/Layer Weight rim light in the shader |
 | Reference-image pipeline | `references/modeling/reference-pipeline.md` | GPT-image orthographic view prompts (front/left/top, +right/back/bottom for complex objects), measure silhouette/profile/palette as text, real-size Image empties, drips/coatings/sprinkle variants with real tools, IoU scoring per view |
+| Cute 2D face expressions | `references/rigging/face-expressions.md` | 50 bundled kawaii faces (happy, angry, uwu, star_eyes...), texture-atlas face decal on the head driven by one `expression` property, set by name, CONSTANT keys, auto-blink partners, GPT-image sheets → new faces in the same layout, Unity/WebXR UV offsets |
+| Project: car from blueprints (Bugatti, JOYCE 3D) | `references/projects/car-modeling-bugatti.md` | Vertex-outline tracing on blueprints, inset+boundary wheel arches, knife cut-through (`Z`), panel rip/split, Mirror → weighted Bevel → SubD stack, radial spoke array, collection-instanced wheels |
+| Project: hard-surface vehicle panels (Private Jet, Blender Guru) | `references/projects/private-jet-guide-mesh.md` | Real-scale blueprints, half hull + Mirror, **guide-mesh Shrinkwrap** (SubD → Shrinkwrap → Solidify → Bevel) for pinch-free panel cuts, `Y` split panels, Thin Wall glass, livery UVs, Track-To camera, Glare/lens compositing |
+| Project: realistic donut (Bro 3D) | `references/projects/realistic-donut.md` | Multires + Clay Strips dough, Quick Liquid icing drips + voxel remesh, real-scale SSS, gradient/displacement dough, coat sheen, weight-painted GN sprinkles (and the procedural, sim-free alternative) |
+| Project: procedural sushi (Bad Normals) | `references/projects/procedural-sushi-geonodes.md` | Volume point scatter of rice instances, XY-masked noise shaping, nori band, Mesh Boolean fillings, exposed Group Input parameters |
+| Project: 1-minute cloth sofa (BlenderVitals) | `references/projects/cloth-sofa.md` | Cloth Pressure 2.0 + zero gravity to inflate cushions, apply at a frame, duplicate into a sofa, Cloth sculpt brush wrinkles, headless-safe Python steps |
+| Quick projects (8 short-form props) | `references/projects/quick-projects.md` | Flower (traced petals, particle pollen), flower pot (grid-fill soil, particle leaves), fur/hair dynamics, gift box (Bezier bow, Shift R), puffy office chair (Face Sets + Cloth Filter Inflate), roof tiles (double Array), vase (Spin + Node Wrangler PBR), tennis ball (rotate-and-weld seam, fuzz) |
+| Squash & stretch rig (Into Animation) | `references/rigging/squash-and-stretch.md` | root/bottom/body/top bones, Stretch To with volume preservation, Bendy Bones with Absolute handles, custom shapes, CONTROLS/DEFORM collections, **corrected Euler-order rule** (last letter = outermost), pinned base weights; `squash_stretch_rig` recipe builds it in one call |
 | Essential modeling add-ons | `references/addons/essential-modeling-addons.md` | Edge Flow, Mesh Align Plus, Tissue, LoopTools, Quick Snap, Re-Primitive — with exact hotkeys/menus |
 | Free add-ons mega list | `references/addons/free-addons-mega-list.md` | ~25 free add-ons grouped by CAD, procedural, assets, cables/cloth, retopo, export/utility |
 
-When a request spans topics, combine them, e.g. real-world prop or food: reference pipeline → modeling → materials from the measured palette → render; stylized bird character: modeling → fur/feathers → texture painting → stylized Eevee; sculpted character: sculpting → (retopo) → texture painting or sculpt vertex paint → stylized Eevee; hard-surface part: boolean cleanup → bevel/SubD → materials.
+When a request matches one of the project walkthroughs (car, aircraft/vehicle panels, donut, sushi, sofa, or a small prop in quick-projects: flower, pot, fur, gift box, chair, roof tiles, vase, tennis ball), read that file first and follow its order, using the BlendPro mapping table at the end. When a request spans topics, combine them, e.g. real-world prop or food: reference pipeline → modeling → materials from the measured palette → render; cute mascot: blockout → face_expression_setup → face_expression_animate (blinks) → stylized Eevee; stylized bird character: modeling → fur/feathers → texture painting → stylized Eevee; sculpted character: sculpting → (retopo) → texture painting or sculpt vertex paint → stylized Eevee; hard-surface part: boolean cleanup → bevel/SubD → materials.
 
 ## How to answer
 
@@ -60,7 +84,7 @@ Token-cheap loop, with images last:
   - Use `tripo_task("balance")` before batch jobs.
   - If the user generates in Tripo Studio instead, the Tripo Bridge add-on pushes models into Blender (`tripo_task("bridge")` shows its state). Find them with `scene_overview`.
 
-### Recipes: 104 tested one-call tasks
+### Recipes: 110 tested one-call tasks
 
 Prefer `recipes` over hand-written bpy when one fits. Each recipe is a parameterized function that was tested headless on Blender 5.2.
 - Discover: `recipes(action="list", category=..., query=...)`.
@@ -71,6 +95,7 @@ Categories:
 - **modeling**: rounded_box, boolean_cut, pipes, arrays, lathe, text, rocks, stairs, mesh_cleanup, fix_ngons, apply_transforms, set_origin, decimate_to_tris, remesh, smooth_by_angle, UV unwrap/lightmap_uv2/checker/texel_density
 - **shading**: PBR from texture folders, procedural materials, lighting rigs, HDRI/sky, camera framing/turntable, render presets, baking (AO, normal, diffuse, atlas), compositor
 - **rigging**: biped and joint-position armatures, auto weights, ≤4-influence limits, IK, bone renaming for Mixamo/Unity, keyframing, procedural walk/idle, bake action, NLA, shape keys, drivers, retarget
+- **faces**: face_expression_setup, face_expression_set, face_expression_animate (blinks), face_atlas_build, face_sheet_import — see `references/rigging/face-expressions.md`
 - **reference**: reference_measure, reference_image_setup, reference_compare (silhouette IoU per view), reference_details (sprinkle/seed size + colour stats) — see `references/modeling/reference-pipeline.md`
 - **geonodes / pipeline**: scatter, curve instancing, procedural buildings and fences, cables, stylized fur, terrain; LODs, UCX collision, batch export, naming, purge, XR budget report, texture resize, draw-call merge
 

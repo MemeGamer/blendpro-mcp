@@ -6,12 +6,14 @@ tools, and score the result against the images.
 
 ## 1. Get the reference views
 
-Decide how many views you need:
+Always generate these views, one image each:
 
 | Object | Views |
 |---|---|
-| Rotationally symmetric or simple (donut, cup, bottle, ball, lamp) | front, left, top |
-| Asymmetric or complex (character, vehicle, shoe, tool) | front, left, top, plus right, back, bottom |
+| Every object | **front, left, right, top, bottom** |
+| Front and back differ (cars, characters, chairs, most products) | the same five **plus back** |
+
+Make the first view, usually left or front, then pass it with `-i` when generating the others, so they all show the same object. Don't use a combined multi-view sheet. Its views come out at different scales, and the right and bottom views get dropped.
 
 **Generate them with GPT image generation.**
 - If the user has ChatGPT open in a linked browser, generate the images there and save them to `<project>/ref/<object>_<view>.png`.
@@ -24,7 +26,8 @@ Orthographic product reference of <OBJECT, with materials, colours and details,
 e.g. "a ring donut with glossy pink glaze that drips slightly over the edge in 4-5 short rounded drips,
 golden-brown dough with a pale band around the middle, and multicoloured rod sprinkles of varied length">.
 VIEW: <exact FRONT view, camera level with the object's centre, looking straight at it |
-       exact LEFT side view | exact TOP view looking straight down | exact RIGHT | BACK | BOTTOM view>.
+       exact LEFT side view | exact RIGHT side view | exact TOP view looking straight down |
+       exact BOTTOM view looking straight up | exact BACK view>.
 True orthographic projection: no perspective, no tilt, no lens distortion.
 Object centred, whole object visible, about 70% of the frame width, same scale as the other views.
 Plain flat pure white background (#FFFFFF), no props, no plate, no cast shadow, no text,

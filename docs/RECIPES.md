@@ -1,3 +1,15 @@
+<details><summary><b>Face expressions</b> (5)</summary>
+
+| Recipe | What it does |
+|---|---|
+| `face_atlas_build` | Pack Face_N.png files into one atlas (8 columns, padded cells), packed into the .blend and written to disk for Unity/WebXR. |
+| `face_expression_animate` | Expression timeline with CONSTANT keys plus automatic blinks using each face's blink partner from faces.json. |
+| `face_expression_set` | Set or keyframe the face by name ("happy", "angry", "uwu"), tag or index. |
+| `face_expression_setup` | Face decal on a head (Shrinkwrap-projected, parented) with an atlas material driven by the decal's `expression` property. 50 faces bundled. |
+| `face_sheet_import` | Slice an AI-generated grid sheet of faces into Face_N.png in the shared layout (one scale for the whole sheet, eyes at y=516). |
+
+</details>
+
 <details><summary><b>Reference images</b> (4)</summary>
 
 | Recipe | What it does |
@@ -73,10 +85,11 @@
 
 </details>
 
-<details><summary><b>Rigging and animation</b> (25)</summary>
+<details><summary><b>Rigging and animation</b> (26)</summary>
 
 | Recipe | What it does |
 |---|---|
+| `squash_stretch_rig` | Squash & stretch rig: root/bottom/top controls, Stretch To B-Bone body with volume preservation, widgets, bone collections, auto weights with a pinned base. |
 | `action_report` | Summarise an object's animation: active action + slot, frame range, F-curve count, keys and channels per bone |
 | `add_root_bone` | Add a root bone at the armature origin (pointing +Y, on the floor) and parent all current top-level bones to it. |
 | `apply_pose_as_rest` | Make the current pose the new rest pose (e.g. convert A-pose to T-pose for Unity). Skinned meshes are first |

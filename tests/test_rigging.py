@@ -319,3 +319,31 @@ CASES = [
     ("root_motion_extract", {"mode": "to_root"}, _rootmo_to_root),
     ("set_fps_and_range", {"fps": 60, "frame_start": 1, "frame_end": 120}, _fps),
 ]
+
+
+def _squash_check(res):
+    """Pull the top control down 30%: the ball must get shorter and wider, and its base must stay put."""
+    from mathutils import Vector
+    arm = bpy.data.objects[res["armature"]]
+    ball = bpy.data.objects[res["target"]]
+
+    def dims():
+        dg = bpy.context.evaluated_depsgraph_get()
+        ev = ball.evaluated_get(dg)
+        me = ev.to_mesh()
+        ps = [ev.matrix_world @ v.co for v in me.vertices]
+        ev.to_mesh_clear()
+        return (max(p.z for p in ps) - min(p.z for p in ps), max(p.x for p in ps) - min(p.x for p in ps),
+                min(p.z for p in ps))
+    h0, w0, z0 = dims()
+    arm.pose.bones["top"].location = (0, -0.3, 0)  # bone-local -Y = down for an upward bone
+    bpy.context.view_layer.update()
+    h1, w1, z1 = dims()
+    assert h1 < h0 * 0.8, (h0, h1)
+    assert w1 > w0 * 1.05, (w0, w1)
+    assert abs(z1 - z0) < 0.01, (z0, z1)
+    assert res["pinned_base_vertices"] > 0 and arm.data.collections["DEFORM"].is_visible is False
+    return True
+
+
+CASES.append(("squash_stretch_rig", {}, _squash_check))
